@@ -61,7 +61,7 @@ jobs:
               sudo apt-get update
               sudo apt-get install -y infisical
             fi
-            cd /srv/post_generator/post_generator_deploy_conf || exit 1
+            cd /srv/telegram_bot/request-reply-bot || exit 1
             export INFISICAL_TOKEN=$(infisical login --method=universal-auth --client-id="$INFISICAL_CLIENT_ID" --client-secret="$INFISICAL_CLIENT_SECRET" --domain=https://eu.infisical.com --silent --plain)
             if [ -z "$INFISICAL_TOKEN" ]; then
               echo "Infisical login failed or returned empty token"

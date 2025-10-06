@@ -12,7 +12,6 @@ class Settings(BaseSettings):
 
     DEBUG: bool = True
 
-
     TELEGRAM_ADMIN_ID: int
     SECRET_BOT_KEY: str = 'test-secret-change-for-prod-lrefjghieu3hfg39'
 
