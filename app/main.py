@@ -1,6 +1,5 @@
 import asyncio
 from aiogram import Dispatcher
-from aiogram.dispatcher import router
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram import Bot
 from aiogram.client.default import DefaultBotProperties

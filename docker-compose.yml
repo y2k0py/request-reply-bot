@@ -2,7 +2,7 @@ services:
   bot:
     image: ivanskrb21/request_reply_bot:latest
     container_name: request_reply_bot
-    command: python app/main.py
+    command: python -m app.main
     environment:
       TELEGRAM_BOT_TOKEN:
       SECRET_BOT_KEY:
