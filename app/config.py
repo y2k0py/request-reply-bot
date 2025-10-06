@@ -13,11 +13,11 @@ class Settings(BaseSettings):
     DEBUG: bool = True
 
 
-    TELEGRAM_ADMIN_ID: int = 698453049
+    TELEGRAM_ADMIN_ID: int
     SECRET_BOT_KEY: str = 'test-secret-change-for-prod-lrefjghieu3hfg39'
 
     # aiogram
-    TELEGRAM_BOT_TOKEN: str = '6710436824:AAFoMfr1BN6UTJEJdynntjjGHLypTBI-2A8'
+    TELEGRAM_BOT_TOKEN: str
 
 
 settings = Settings()
