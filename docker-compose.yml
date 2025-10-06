@@ -1,0 +1,36 @@
+services:
+  bot:
+    image: ivanskrb21/request_reply_bot:latest
+    container_name: request_reply_bot
+    command: python app/main.py
+    environment:
+      TELEGRAM_BOT_TOKEN:
+      SECRET_BOT_KEY:
+      TELEGRAM_ADMIN_ID:
+      DEBUG:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: ${BOT_DB_NAME}
+      DB_USER: ${BOT_DB_USER}
+      DB_PASS: ${BOT_DB_PASS}
+    networks:
+      - bot_net
+
+  db:
+    image: postgres:18.0-alpine
+    container_name: db
+    environment:
+      POSTGRES_DB: ${BOT_DB_NAME}
+      POSTGRES_USER: ${BOT_DB_USER}
+      POSTGRES_PASSWORD: ${BOT_DB_PASS}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    networks:
+      - bot_net
+
+networks:
+  bot_net:
+    driver: bridge
+
+volumes:
+  db_data:

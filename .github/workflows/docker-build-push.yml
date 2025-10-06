@@ -1,0 +1,76 @@
+name: Fast AMD64 Pipeline
+on:
+  push:
+    branches: [ main, dev ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push linux/amd64
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Dockerfile
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/request_reply_bot:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/request_reply_bot:${{ github.sha }}
+          cache-from: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/request_reply_bot:buildcache-amd64
+          cache-to: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/request_reply_bot:buildcache-amd64,mode=max
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - name: Deploy to server via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          INFISICAL_CLIENT_ID: ${{ secrets.INFISICAL_CLIENT_ID }}
+          INFISICAL_CLIENT_SECRET: ${{ secrets.INFISICAL_CLIENT_SECRET }}
+          INFISICAL_PROJECT_ID: ${{ secrets.INFISICAL_PROJECT_ID }}
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: 22
+          timeout: 300s
+          command_timeout: 600s
+
+          envs: INFISICAL_CLIENT_ID,INFISICAL_CLIENT_SECRET,INFISICAL_PROJECT_ID
+          script: |
+            set -e
+            if ! command -v infisical >/dev/null 2>&1; then
+              curl -1sLf 'https://artifacts-cli.infisical.com/setup.deb.sh' | sudo -E bash
+              sudo apt-get update
+              sudo apt-get install -y infisical
+            fi
+            cd /srv/post_generator/post_generator_deploy_conf || exit 1
+            export INFISICAL_TOKEN=$(infisical login --method=universal-auth --client-id="$INFISICAL_CLIENT_ID" --client-secret="$INFISICAL_CLIENT_SECRET" --domain=https://eu.infisical.com --silent --plain)
+            if [ -z "$INFISICAL_TOKEN" ]; then
+              echo "Infisical login failed or returned empty token"
+              exit 2
+            fi
+            git pull origin main
+            docker compose pull
+
+            infisical run --projectId="$INFISICAL_PROJECT_ID" --env=prod --token="$INFISICAL_TOKEN" --domain=https://eu.infisical.com -- docker compose up -d --build
+            echo "Deployment completed successfully!"
+            
+  
