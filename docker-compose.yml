@@ -17,14 +17,14 @@ services:
       - bot_net
 
   db:
-    image: postgres:18.0-alpine
+    image: postgres:17.5
     container_name: db
     environment:
       POSTGRES_DB: ${BOT_DB_NAME}
       POSTGRES_USER: ${BOT_DB_USER}
       POSTGRES_PASSWORD: ${BOT_DB_PASS}
     volumes:
-      - db_data:/var/lib/postgresql/data
+      - bot_db_data:/var/lib/postgresql/data
     networks:
       - bot_net
 
@@ -33,4 +33,4 @@ networks:
     driver: bridge
 
 volumes:
-  db_data:
+  bot_db_data:
